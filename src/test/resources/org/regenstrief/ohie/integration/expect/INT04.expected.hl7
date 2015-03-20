@@ -1,0 +1,5 @@
+REM|Response is ACK^A01
+REM|Response version is 2.3.1
+MSH|^~\&|||||||ACK^A01|||2.3.1
+REM|Receiver rejects the message with an AR or AE
+MSA|ANY(AR;AE)
