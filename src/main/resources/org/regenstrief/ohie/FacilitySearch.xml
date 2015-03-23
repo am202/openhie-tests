@@ -1,0 +1,8 @@
+<csd:careServicesRequest xmlns:csd="urn:ihe:iti:csd:2013" xmlns="urn:ihe:iti:csd:2013">
+    <function urn='urn:ihe:iti:csd:2014:stored-function:facility-search'>
+        <requestParams>
+            <primaryName></primaryName>
+            <max></max>
+        </requestParams>
+    </function>
+</csd:careServicesRequest>
