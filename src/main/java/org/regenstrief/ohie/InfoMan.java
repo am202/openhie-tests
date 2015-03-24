@@ -264,7 +264,7 @@ public class InfoMan {
     private NodeList invokeXml(String req, final String tag) throws Exception {
         req = Util.replaceAllExact(req, "            \n", "");
         req = Util.replaceAllExact(req, "            \r\n", "");
-        return XMLUtil.getChildren(XMLUtil.parseXMLFromString(invoke(req)), tag);
+        return XMLUtil.getDescendants(XMLUtil.parseXMLFromString(invoke(req)), tag);
     }
     
     private String invoke(final String req) throws Exception {
