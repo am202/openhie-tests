@@ -54,6 +54,7 @@ import org.regenstrief.io.LabeledInputStream;
 import org.regenstrief.io.LabeledReader;
 import org.regenstrief.xml.DOMIO;
 import org.regenstrief.xml.NodeArrayList;
+import org.regenstrief.xml.RegenPath;
 import org.regenstrief.xml.StandardDOMIO;
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
@@ -782,6 +783,11 @@ public class XMLUtil {
         	return node;
         }
         */
+        final RegenPath.RegenPathExpression path = RegenPath.getInstance().compile(nodename, true);
+        final int size = path.size();
+        if (size > 1) {
+            return path.evaluateFirst(node);
+        }
         
         final NodeArrayList list = getDescendants(node, nodename, new NodeArrayList(1), 1);
         
