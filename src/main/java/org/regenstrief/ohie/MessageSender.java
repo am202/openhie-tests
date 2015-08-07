@@ -47,7 +47,7 @@ public class MessageSender {
     
     private final static Object countLock = new Object();
     
-    private final static BlockingQueue<String> messageQueue = new ArrayBlockingQueue<String>(Math.round(NUM_THREADS * 1.5f));
+    private final static BlockingQueue<Message> messageQueue = new ArrayBlockingQueue<Message>(Math.round(NUM_THREADS * 1.5f));
     
     //private final static HL7Transform transform = null;
     
@@ -103,7 +103,6 @@ public class MessageSender {
             messageCount++;
         }
         final String req = b.toString();
-        info("Sending " + messageCount + ":" + BR + req);
         send(req);
     }
     
@@ -129,7 +128,7 @@ public class MessageSender {
     }
     
     private final static void send(final String msg) throws Exception {
-        messageQueue.put(msg);
+        messageQueue.put(new Message(msg, messageCount));
     }
     
     private final static class RawSender implements Runnable {
@@ -137,18 +136,37 @@ public class MessageSender {
         @Override
         public final void run() {
             try {
+                final String threadName = Thread.currentThread().getName();
                 while (true) {
-                    final String msg = messageQueue.take();
+                    final Message message = messageQueue.take();
+                    final int size = messageQueue.size();
+                    final String msg = message.msg;
+                    final int index = message.index;
                     if (STOP.equals(msg)) {
                         send(STOP); // Make sure next thread will see the STOP signal too
                         return;
                     }
+                    info("Sending " + index + " from queue of " + size + ":" + BR + msg);
+                    final long start = System.currentTimeMillis();
                     final String rsp = HL7IO.send_rcv_hl7_msg(HOST, PORT_PIX, 0, HL7IO.convert_lf_to_cr(msg));
-                    info("Received " + messageCount + ":" + BR + rsp + BR);
+                    final long time = System.currentTimeMillis() - start;
+                    info("Received " + index + " in thread " + threadName + " after " + time + " ms:" + BR + rsp + BR);
                 }
             } catch (final Exception e) {
                 info(Util.getStackTraceString(e));
             }
+        }
+    }
+    
+    private final static class Message {
+        
+        private final String msg;
+        
+        private final int index;
+        
+        private Message(final String msg, final int index) {
+            this.msg = msg;
+            this.index = index;
         }
     }
     
