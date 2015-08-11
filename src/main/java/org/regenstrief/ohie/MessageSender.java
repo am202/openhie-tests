@@ -90,9 +90,9 @@ public class MessageSender {
         info("Finished after " + messageCount + " messages");
     }
     
-    private final static void send(final List<HL7Segment> msg) throws Exception {
+    private final static boolean send(final List<HL7Segment> msg) throws Exception {
         if (Util.isEmpty(msg)) {
-            return;
+            return false;
         }
         transform(msg);
         final StringBuilder b = new StringBuilder();
@@ -104,6 +104,7 @@ public class MessageSender {
         }
         final String req = b.toString();
         send(req);
+        return true;
     }
     
     private final static void transform(final List<HL7Segment> msg) throws Exception {
