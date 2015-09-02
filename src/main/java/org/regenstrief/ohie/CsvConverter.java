@@ -15,6 +15,8 @@ package org.regenstrief.ohie;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.regenstrief.hl7.convert.Escaper;
 import org.regenstrief.hl7.datatype.NM;
 import org.regenstrief.hl7.datatype.XTN;
@@ -27,6 +29,8 @@ import org.regenstrief.util.Util;
  * CsvConverter
  */
 public class CsvConverter {
+    
+    private static final Log log = LogFactory.getLog(CsvConverter.class);
     
     private final static String HL7_MRN =
             "MSH|^~\\&|TEST_HARNESS^^|TEST^^|OpenEMPI|OpenHIE|20141009103551||ADT^A01^ADT_A01|TEST-CR-05-10|P|2.3.1|1234||AL|NE\n" +
@@ -119,6 +123,8 @@ public class CsvConverter {
             throw new IllegalArgumentException("Unrecognized format: " + format);
         }
         escaper = new Escaper();
+        int count = 0;
+        log.info("Starting");
         try {
             in = Util.getBufferedReader(inName);
             final String outName = inName + ".hl7";
@@ -150,11 +156,16 @@ public class CsvConverter {
                 write(HL7_SSN, IND_SSN);
                 out.write(HL7_END);
                 out.flush();
+                count++;
+                if ((count % 10000) == 0) {
+                    log.info("Converted " + count + " messages");
+                }
             }
         } finally {
             IoUtil.close(out);
             IoUtil.close(in);
         }
+        log.info("Finished after " + count + " messages");
     }
     
     private final static String get(final int index) {
@@ -192,7 +203,7 @@ public class CsvConverter {
             final String identifier = fullPhone.substring(fullSize - 4);
             final int end = fullSize - ((fullPhone.charAt(fullSize - 5) == '-') ? 5 : 4); 
             final String exchange = fullPhone.substring(end - 3, end);
-            phone = identifier + exchange;
+            phone = exchange + identifier;
             if (fullSize >= 10) {
                 final char char0 = fullPhone.charAt(0);
                 final int start;
@@ -206,6 +217,9 @@ public class CsvConverter {
                     start = 0;
                 }
                 areaCode = fullPhone.substring(start, start + 3);
+                fullPhone = "(" + areaCode + ")" + exchange + "-" + identifier;
+            } else {
+                fullPhone = exchange + "-" + identifier;
             }
         } else if (Util.isValued(phone) && Util.isEmpty(fullPhone)) {
             if (Util.isEmpty(areaCode) || areaCode.equals("000")) {
