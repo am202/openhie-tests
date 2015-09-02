@@ -47,7 +47,9 @@ public class CsvConverter {
     
     private final static String HL7_ZIP ="^";
     
-    private final static String HL7_AREA_CODE ="||^^^^^";
+    private final static String HL7_FULL_PHONE ="||";
+    
+    private final static String HL7_AREA_CODE ="^^^^^";
     
     private final static String HL7_PHONE ="^";
     
@@ -91,8 +93,17 @@ public class CsvConverter {
                 write(HL7_CITY, 7);
                 write(HL7_STATE, 8);
                 write(HL7_ZIP, 9);
-                write(HL7_AREA_CODE, 10);
-                write(HL7_PHONE, 11);
+                final String areaCode = tokens[10], phone = tokens[11], fullPhone;
+                if (Util.isEmpty(phone)) {
+                    fullPhone = "";
+                } else if (Util.isEmpty(areaCode) || areaCode.equals("000")) {
+                    fullPhone = phone;
+                } else {
+                    fullPhone = "(" + areaCode + ")" + phone;
+                }
+                write(HL7_FULL_PHONE, fullPhone);
+                write(HL7_AREA_CODE, areaCode);
+                write(HL7_PHONE, Util.remove(phone, '-'));
                 write(HL7_SSN, 12);
                 out.write(HL7_END);
                 out.flush();
@@ -104,7 +115,14 @@ public class CsvConverter {
     }
     
     private final static void write(final String prefix, final int index) throws Exception {
+        write(prefix, tokens[index]);
+    }
+    
+    private final static void write(final String prefix, final String value) throws Exception {
         out.write(prefix);
-        out.write(escaper.escape(tokens[index]));
+        final String escaped = escaper.escape(value);
+        if (escaped != null) {
+            out.write(escaped);
+        }
     }
 }
