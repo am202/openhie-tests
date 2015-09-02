@@ -94,6 +94,8 @@ public class CsvConverter {
     
     private static int IND_SSN = -1;
     
+    private static boolean skipFirst = false;
+    
     private static BufferedReader in = null;
     
     private static BufferedWriter out = null;
@@ -121,6 +123,9 @@ public class CsvConverter {
             in = Util.getBufferedReader(inName);
             final String outName = inName + ".hl7";
             out = Util.getBufferedWriter(Util.getFileWriter(outName));
+            if (skipFirst) {
+                in.readLine();
+            }
             String line;
             while ((line = in.readLine()) != null) {
                 if (line.isEmpty()) {
@@ -231,6 +236,7 @@ public class CsvConverter {
         IND_AREA_CODE = 10;
         IND_PHONE = 11;
         IND_SSN = 12;
+        skipFirst = false;
     }
     
     private final static void initIndices2() {
@@ -252,5 +258,6 @@ public class CsvConverter {
         IND_FULL_PHONE = 13;
         IND_MOTHERS_MAIDEN_NAME = 14;
         IND_DOB = 15;
+        skipFirst = true;
     }
 }
