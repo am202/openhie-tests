@@ -59,6 +59,34 @@ public class CsvConverter {
                     "PV1||I\n\n";
     
     // person_id,last,first,middle,dob,gender,street,city,state,zip,area_code,phone_number,ssn,global_person_id
+    // Number,Gender,GivenName,MiddleInitial,Surname,StreetAddress,City,State,ZipCode,Country,EmailAddress,Username,Password,TelephoneNumber,MothersMaiden,Birthday,CCType,CCNumber,CVV2,CCExpires,NationalID,UPS,Occupation,Company,Vehicle,Domain,BloodType,Pounds,Kilograms,FeetInches,Centimeters,GUID,Latitude,Longitude
+    
+    private static int IND_MRN = -1;
+    
+    private static int IND_NAME_LAST = -1;
+    
+    private static int IND_NAME_FIRST = -1;
+    
+    private static int IND_NAME_MIDDLE = -1;
+    
+    private static int IND_DOB = -1;
+    
+    private static int IND_GENDER = -1;
+    
+    private static int IND_STREET = -1;
+    
+    private static int IND_CITY = -1;
+    
+    private static int IND_STATE = -1;
+    
+    private static int IND_ZIP = -1;
+    
+    private static int IND_AREA_CODE = -1;
+    
+    private static int IND_PHONE = -1;
+    
+    private static int IND_SSN = -1;
+    
     private static BufferedReader in = null;
     
     private static BufferedWriter out = null;
@@ -68,10 +96,17 @@ public class CsvConverter {
     private static Escaper escaper = null;
     
     public final static void main(final String[] args) throws Exception {
-        run(args[0]);
+        run(args);
     }
     
-    private final static void run(final String inName) throws Exception {
+    private final static void run(final String[] args) throws Exception {
+        final String inName = args[0];
+        final String format = args[1];
+        if ("1".equals(format)) {
+            initIndices1();
+        } else {
+            throw new IllegalArgumentException("Unrecognized format: " + format);
+        }
         escaper = new Escaper();
         try {
             in = Util.getBufferedReader(inName);
@@ -83,17 +118,17 @@ public class CsvConverter {
                     continue;
                 }
                 tokens = Util.splitCSV(line);
-                write(HL7_MRN, 0);
-                write(HL7_NAME_LAST, 1);
-                write(HL7_NAME_FIRST, 2);
-                write(HL7_NAME_MIDDLE, 3);
-                write(HL7_DOB, 4);
-                write(HL7_GENDER, 5);
-                write(HL7_STREET, 6);
-                write(HL7_CITY, 7);
-                write(HL7_STATE, 8);
-                write(HL7_ZIP, 9);
-                final String areaCode = tokens[10], phone = tokens[11], fullPhone;
+                write(HL7_MRN, IND_MRN);
+                write(HL7_NAME_LAST, IND_NAME_LAST);
+                write(HL7_NAME_FIRST, IND_NAME_FIRST);
+                write(HL7_NAME_MIDDLE, IND_NAME_MIDDLE);
+                write(HL7_DOB, IND_DOB);
+                write(HL7_GENDER, formatGender(get(IND_GENDER)));
+                write(HL7_STREET, IND_STREET);
+                write(HL7_CITY, IND_CITY);
+                write(HL7_STATE, IND_STATE);
+                write(HL7_ZIP, IND_ZIP);
+                final String areaCode = get(IND_AREA_CODE), phone = get(IND_PHONE), fullPhone;
                 if (Util.isEmpty(phone)) {
                     fullPhone = "";
                 } else if (Util.isEmpty(areaCode) || areaCode.equals("000")) {
@@ -104,7 +139,7 @@ public class CsvConverter {
                 write(HL7_FULL_PHONE, fullPhone);
                 write(HL7_AREA_CODE, areaCode);
                 write(HL7_PHONE, Util.remove(phone, '-'));
-                write(HL7_SSN, 12);
+                write(HL7_SSN, IND_SSN);
                 out.write(HL7_END);
                 out.flush();
             }
@@ -114,8 +149,12 @@ public class CsvConverter {
         }
     }
     
+    private final static String get(final int index) {
+        return (index < 0) ? null : Util.get(tokens, index);
+    }
+    
     private final static void write(final String prefix, final int index) throws Exception {
-        write(prefix, tokens[index]);
+        write(prefix, get(index));
     }
     
     private final static void write(final String prefix, final String value) throws Exception {
@@ -124,5 +163,25 @@ public class CsvConverter {
         if (escaped != null) {
             out.write(escaped);
         }
+    }
+    
+    private final static String formatGender(final String gender) {
+        return Util.isValued(gender) ? gender.substring(0, 1).toUpperCase() : null;
+    }
+    
+    private final static void initIndices1() {
+        IND_MRN = 0;
+        IND_NAME_LAST = 1;
+        IND_NAME_FIRST = 2;
+        IND_NAME_MIDDLE = 3;
+        IND_DOB = 4;
+        IND_GENDER = 5;
+        IND_STREET = 6;
+        IND_CITY = 7;
+        IND_STATE = 8;
+        IND_ZIP = 9;
+        IND_AREA_CODE = 10;
+        IND_PHONE = 11;
+        IND_SSN = 12;
     }
 }
