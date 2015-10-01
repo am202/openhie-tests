@@ -32,12 +32,6 @@ public class TestClientRegistry extends TestCase {
     
     private static final Log log = LogFactory.getLog(TestClientRegistry.class);
     
-    private final static String HOST = Util.getProperty("org.regenstrief.ohie.cr.host", "cr2.test.ohie.org");
-    
-    private final static int PORT_PIX = Util.getPropertyInt("org.regenstrief.ohie.cr.port.pix", 2100);
-    
-    private final static int PORT_PDQ = Util.getPropertyInt("org.regenstrief.ohie.cr.port.pdq", 2100);
-    
     private final static String LOCATION_INPUT = "org/regenstrief/ohie/integration/input";
     
     private final static String LOCATION_EXPECT = "org/regenstrief/ohie/integration/expect";
@@ -84,11 +78,13 @@ public class TestClientRegistry extends TestCase {
         new MessageValidator().validateMessage(exTree, acTree);
     }
     
-    private String send(final String in) throws Exception {
-        return HL7IO.send_rcv_hl7_msg(HOST, getPort(in), 0, HL7IO.convert_lf_to_cr(in));
+    protected static String send(final String in) throws Exception {
+        final int port = getPort(in);
+        log.info("Sending to " + MessageSender.HOST + ":" + port);
+        return HL7IO.send_rcv_hl7_msg(MessageSender.HOST, port, 0, HL7IO.convert_lf_to_cr(in));
     }
     
-    private int getPort(final String msg) {
-        return Util.contains(msg, "QBP^Q22") ? PORT_PDQ : PORT_PIX;
+    private static int getPort(final String msg) {
+        return Util.contains(msg, "QBP^Q22") ? MessageSender.PORT_PDQ : MessageSender.PORT_PIX;
     }
 }
