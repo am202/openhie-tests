@@ -76,6 +76,7 @@ import java.util.concurrent.Callable;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.apache.commons.logging.Log;
@@ -2897,6 +2898,28 @@ public final class Util {
         } catch (final Exception e) {
             // Try another way
         }
+        InputStream is = null;
+        try {
+            is = Util.class.getProtectionDomain().getCodeSource().getLocation().openStream();
+            final ZipInputStream z = new ZipInputStream(is);
+            ZipEntry entry;
+            final List<String> files = new ArrayList<String>();
+            final String pre = location + "/";
+            final int len = pre.length();
+            while ((entry = z.getNextEntry()) != null) {
+                final String name = entry.getName();
+                if ((name.length() > len) && name.startsWith(pre)) {
+                    files.add(name.substring(len));
+                }
+            }
+            if (files.size() > 0) {
+                return files.toArray(EMPTY_ARRAY_STRING);
+            }
+        } catch (final Exception e) {
+            // Try another way
+        } finally {
+            IoUtil.close(is);
+        }
         BufferedReader in = null;
         try {
             // Works for directories in a ClassLoader.getResource, not sure about other URLs
@@ -3075,11 +3098,15 @@ public final class Util {
             if (enc == null) {
                 enc = getDefaultEncoding();
             }
-            return enc;
-        } finally {
             if (close) {
                 is.close();
             }
+            return enc;
+        } catch (final Exception e) {
+            if (close) {
+                IoUtil.close(is);
+            }
+            throw toIOException(e);
         }
     }
     
